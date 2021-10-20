@@ -15,7 +15,7 @@ func guiStart(port int, ct *dig.Container) {
 	defer func() {
 		c <- os.Kill
 	}()
-	gui.SetTitle("jd壕羊毛第五大队")
+	gui.SetTitle("jd cookie Tools")
 	gui.SetSize(800, 600, webview.HintNone)
 	gui.Navigate(fmt.Sprintf("http://127.0.0.1:%d/", port))
 	gui.Bind("quit", func() {
