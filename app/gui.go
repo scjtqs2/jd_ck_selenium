@@ -8,6 +8,8 @@ import (
 	"go.uber.org/dig"
 	"os"
 )
+// New window
+var w *astilectron.Window
 
 func guiStart(port int, ct *dig.Container)  {
 	// Initialize astilectron
@@ -25,8 +27,7 @@ func guiStart(port int, ct *dig.Container)  {
 		log.Fatalf("main: starting astilectron failed: %w", err)
 	}
 
-	// New window
-	var w *astilectron.Window
+
 	if w, err = a.NewWindow(fmt.Sprintf("http://127.0.0.1:%d/", port), &astilectron.WindowOptions{
 		Center: astikit.BoolPtr(true),
 		Height: astikit.IntPtr(600),
