@@ -105,7 +105,7 @@ func getCookies(wd selenium.WebDriver, service *selenium.Service) {
 			log.Info("####################################################")
 			//wd.Quit()
 			//service.Stop()
-			c <- os.Kill
+			//c <- os.Kill
 			return
 		}
 		time.Sleep(time.Second * 1)
@@ -146,13 +146,13 @@ func getGeckoDriverPath(ct *dig.Container) (string, error) {
 		break
 	case "amd64":
 		arch = "amd64"
-		if osname == "windows" {
+		if osname == "win" {
 			arch = "amd64.exe"
 		}
 		break
 	case "386":
 		arch = "i386.exe"
-		if osname != "windows" {
+		if osname != "win" {
 			return "", errors.New("not support arch")
 		}
 		break
@@ -167,6 +167,9 @@ func getGeckoDriverPath(ct *dig.Container) (string, error) {
 	//将文件拷贝到tmp文件夹下
 	defer testFile.Close()
 	dst := "./geckodriver-" + osname + "-" + arch
+	if osname == "win" {
+		dst = dst +".exe"
+	}
 	if !util.PathExists(dst) {
 		destination, err := os.Create(dst)
 		if err != nil {
