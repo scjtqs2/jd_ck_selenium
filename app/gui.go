@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func guiStart2(port int, ct *dig.Container)  {
+func guiStart(port int, ct *dig.Container)  {
 	// Initialize astilectron
 	var a, _ = astilectron.New(log.New(), astilectron.Options{
 		AppName:           "jd_cookie_Tools",
@@ -62,14 +62,13 @@ func guiStart2(port int, ct *dig.Container)  {
 		}
 		return "success"
 	})
-	// Open dev tools
 	// Create windows
 	if err := w.Create(); err != nil {
 		log.Fatal(fmt.Errorf("main: creating window failed: %w", err))
 	}
-	w.OpenDevTools()
-
-
+	
+	// Open dev tools
+	//w.OpenDevTools()
 
 	// Blocking pattern
 	a.Wait()
