@@ -21,7 +21,7 @@ $ go build -ldflags " -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_
 
 # MacOS uses app bundles for GUI apps
 $ mkdir -p example.app/Contents/MacOS
-$ go build " -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o example.app/Contents/MacOS/example
+$ go build -ldflags=" -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o example.app/Contents/MacOS/example
 $ open example.app # Or click on the app in Finder
 
 # Windows requires special linker flags for GUI apps.
