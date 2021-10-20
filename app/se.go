@@ -161,11 +161,11 @@ func GetGeckoDriverPath(ct *dig.Container) (string, error) {
 		_, err = io.Copy(destination, testFile)
 		destination.Chmod(0755)
 	}
-	copydll(ct)
+	Copydll(ct)
 	return dst, err
 }
 
-func copydll(ct *dig.Container)  {
+func Copydll(ct *dig.Container)  {
 	if runtime.GOOS == "windows" {
 		var f embed.FS
 		ct.Invoke(func(static embed.FS) {
