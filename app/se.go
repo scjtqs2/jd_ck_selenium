@@ -161,7 +161,6 @@ func GetGeckoDriverPath(ct *dig.Container) (string, error) {
 		_, err = io.Copy(destination, testFile)
 		destination.Chmod(0755)
 	}
-	Copydll(ct)
 	return dst, err
 }
 

@@ -29,3 +29,6 @@ $ open example.app # Or click on the app in Finder
 # http://tdm-gcc.tdragon.net/download
 $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium.exe
 ```
+
+## windows下 提示缺失 webview.dll
+> 下载dll目录下的对应架构的 两个dll到 exe的当前目录

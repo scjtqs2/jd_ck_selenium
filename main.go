@@ -20,6 +20,5 @@ func main() {
 	container.Provide(func() (WebHookUrl string) {
 		return WebHookUrl
 	})
-	app.Copydll(container)
 	app.Run(container)
 }
