@@ -16,19 +16,11 @@
 >
 
 ```bash
-# Linux
+# Linux/macos
 $ go build -ldflags " -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium && ./jd_ck_selenium
 
-# MacOS uses app bundles for GUI apps
-$ mkdir -p example.app/Contents/MacOS
-$ go build -ldflags=" -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o example.app/Contents/MacOS/example
-$ open example.app # Or click on the app in Finder
-
 # Windows requires special linker flags for GUI apps.
-# It's also recommended to use TDM-GCC-64 compiler for CGo.
-# http://tdm-gcc.tdragon.net/download
+
 $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium.exe
 ```
-
-## windows下 提示缺失 webview.dll
-> 下载dll目录下的对应架构的 两个dll到 exe的当前目录
+> -X main.WebHookUrl 这个不带也可以。就不进行cookie推送

@@ -7,11 +7,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>首页 · 京东薅羊毛控制面板</title>
-    <script type="text/javascript" src="./assets/js/jquery.min.js"></script>
+    <!--    <script type="text/javascript" src="./assets/js/jquery.min.js"></script>-->
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script>if (typeof module === 'object') {
+        window.jQuery = window.$ = module.exports;
+    }
+    ;</script>
     <script type="text/javascript" src="./assets/js/codemirror.min.js"></script>
     <script type="text/javascript" src="./assets/js/comment.js"></script>
-    <script type="text/javascript" src="./assets/js/shell.js"></script>
-    <script type="text/javascript" src="./assets/js/sublime.js"></script>
+    <!--    <script type="text/javascript" src="./assets/js/shell.js"></script>-->
+    <!--    <script type="text/javascript" src="./assets/js/sublime.js"></script>-->
     <script type="text/javascript" src="./assets/js/sweetalert2.js"></script>
     <script type="text/javascript" src="./assets/js/qrcode.min.js"></script>
     <script type="text/javascript" src="./assets/js/prefixfree.min.js"></script>
@@ -65,9 +70,6 @@
     </div>
 </div>
 <script>
-    $.ajaxSetup({
-        cache: false
-    });
     var qrcode, userCookie;
     $(document).ready(function () {
         function copyToClip(content, message) {
@@ -78,15 +80,26 @@
             document.execCommand("copy");
             document.body.removeChild(aux);
         }
+
         $('#openDriver').click(function () {
-            open();
+            // open();
+            // This will send a message to GO
+            astilectron.sendMessage("open", function (message) {
+                console.log("received " + message)
+            });
         });
         $('#closeDriver').click(function () {
-            quit();
+            // quit();
+            // This will send a message to GO
+            astilectron.sendMessage("quit", function (message) {
+                console.log("received " + message)
+            });
         });
         $('#getcookie').click(function () {
-            getck().then(function(userCookie) {
-                console.log(userCookie)
+            // This will wait for the astilectron namespace to be ready
+            // This will send a message to GO
+            astilectron.sendMessage("getck", function (userCookie) {
+                console.log("received " + userCookie)
                 if (userCookie === "") {
                     Swal.fire({
                         title: "获取cookie失败，请稍后再试",
@@ -106,9 +119,33 @@
                     }).then((result) => {
                         copyToClip(userCookie);
                         window.location.reload(true);
-                    })
+                    });
                 }
-            })
+            });
+            // getck().then(function(userCookie) {
+            //     console.log(userCookie)
+            //     if (userCookie === "") {
+            //         Swal.fire({
+            //             title: "获取cookie失败，请稍后再试",
+            //             text: "没获取到cookie，请重试",
+            //             icon: "error",
+            //         }).then((result) => {
+            //             window.location.reload(true);
+            //         })
+            //     } else {
+            //         Swal.fire({
+            //             title: "获取cookie成功",
+            //             text: "cookie= " + userCookie,
+            //             html: '<div class="cookieCon" style="font-size:12px;">' +
+            //                 userCookie + '</div>',
+            //             icon: "success",
+            //             confirmButtonText: "复制Cookie",
+            //         }).then((result) => {
+            //             copyToClip(userCookie);
+            //             window.location.reload(true);
+            //         })
+            //     }
+            // })
         });
         $('.qframe-close').click(function () {
             $("#qrcontainer").addClass("hidden");

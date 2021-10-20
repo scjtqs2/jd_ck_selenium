@@ -73,6 +73,7 @@ func (s *httpServer) httpStart(ct *dig.Container) int {
 		c.FileFromFS("static/www/assets/"+c.Param("action"), http.FS(f))
 	})
 	port ,_:=pickUnusedPort()
+	//port := 10987
 	go func() {
 		s.HTTP = &http.Server{
 			Addr:    fmt.Sprintf("127.0.0.1:%d",port),

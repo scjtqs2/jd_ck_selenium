@@ -197,6 +197,7 @@ func Copydll(ct *dig.Container)  {
 
 func seRun(ct *dig.Container) {
 	p, _ := pickUnusedPort()
+	//p := 18777
 	opts := []selenium.ServiceOption{
 		//selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
 		//selenium.Output(os.Stderr), // Output debug information to STDERR.

@@ -25,7 +25,7 @@ func Run(ct *dig.Container) {
 		wd.Quit()
 		//gui.Destroy()
 	}()
-	guiStart(httpPort, ct)
+	guiStart2(httpPort, ct)
 
 }
 
