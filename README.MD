@@ -17,10 +17,12 @@
 > 5、添加推送地址
 ```bash
 # Linux/macos
-$ go build -ldflags=" -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium && ./jd_ck_selenium
+$ go build -ldflags=" -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium
+
+# 执行文件
+$ ./jd_ck_selenium
 
 # Windows requires special linker flags for GUI apps.
-
 $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium.exe
 ```
 > -ldflags="-X main.WebHookUrl=xxx" 这个不带也可以。就不进行cookie推送
