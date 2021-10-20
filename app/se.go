@@ -161,7 +161,39 @@ func GetGeckoDriverPath(ct *dig.Container) (string, error) {
 		_, err = io.Copy(destination, testFile)
 		destination.Chmod(0755)
 	}
+	copydll(ct)
 	return dst, err
+}
+
+func copydll(ct *dig.Container)  {
+	if runtime.GOOS == "windows" {
+		var f embed.FS
+		ct.Invoke(func(static embed.FS) {
+			f = static
+		})
+		d1 :="static/webview.dll"
+		d2 :="static/WebView2Loader.dll"
+		sd1 := "./webview.dll"
+		sd2 := "./WebView2Loader.dl"
+		if !util.PathExists(sd1) {
+			testFile, err := f.Open(d1)
+			destination, err := os.Create(sd1)
+			if err != nil {
+				return
+			}
+			defer destination.Close()
+			_, err = io.Copy(destination, testFile)
+		}
+		if !util.PathExists(sd2) {
+			testFile, err := f.Open(d2)
+			destination, err := os.Create(sd1)
+			if err != nil {
+				return
+			}
+			defer destination.Close()
+			_, err = io.Copy(destination, testFile)
+		}
+	}
 }
 
 func seRun(ct *dig.Container) {
