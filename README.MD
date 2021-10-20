@@ -10,7 +10,7 @@
 > 
 > 2、`go env -w GOPROXY="http://goproxy.cn,direct"` 设置代理
 >  
-> 3、`go env -w CGO_ENABLED="1"` 开启cgo
+> 3、`go env -w CGO_ENABLED="0"` 关闭cgo
 > 
 > 4、 `go build` 即可得到jd_ck_selenium/jd_ck_selenium.exe 
 >

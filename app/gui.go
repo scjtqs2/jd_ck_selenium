@@ -19,6 +19,12 @@ func guiStart(port int, ct *dig.Container) {
 		BaseDirectoryPath: "example",
 	})
 	defer a.Close()
+	defer func() {
+		wd.Quit()
+		service.Stop()
+		os.Remove(geckoDriverPath)
+		c <- os.Kill
+	}()
 	var err error
 	// Handle signals
 	//a.HandleSignals()
@@ -45,8 +51,8 @@ func guiStart(port int, ct *dig.Container) {
 		switch s {
 		case "quit":
 			os.Remove(geckoDriverPath)
-			service.Stop()
 			wd.Quit()
+			service.Stop()
 			c <- os.Kill
 			w.Destroy()
 			a.Close()

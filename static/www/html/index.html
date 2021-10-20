@@ -131,33 +131,50 @@
             var lineWrapping = editor.getOption('lineWrapping');
             editor.setOption('lineWrapping', !lineWrapping);
         });
-        // This will listen to messages sent by GO
-        astilectron.onMessage(function(userCookie) {
-            // Process message
-            console.log("received " + userCookie)
-            if (userCookie === "") {
-                Swal.fire({
-                    title: "获取cookie失败，请稍后再试",
-                    text: "没获取到cookie，请重试",
-                    icon: "error",
-                }).then((result) => {
-                    window.location.reload(true);
-                })
-            } else {
-                Swal.fire({
-                    title: "获取cookie成功",
-                    text: "cookie= " + userCookie,
-                    html: '<div class="cookieCon" style="font-size:12px;">' +
-                        userCookie + '</div>',
-                    icon: "success",
-                    confirmButtonText: "复制Cookie",
-                }).then((result) => {
-                    copyToClip(userCookie);
-                    window.location.reload(true);
-                });
-            }
-        });
+
+        // if (window.addEventListener) {
+        //     //添加监听事件
+        //     window.addEventListener("load", listen, false); //事件在冒泡阶段执行
+        // } else if (window.attachEvent) {
+        //     window.attachEvent("onload",listen);
+        //     console.log('onload');
+        // } else {
+        //     window.onload = listen;
+        // }
+
+        document.addEventListener('astilectron-ready', listen,false)
+        function listen() {
+            // This will listen to messages sent by GO
+            astilectron.onMessage(function (userCookie) {
+                // Process message
+                console.log("received " + userCookie)
+                if (userCookie === "") {
+                    Swal.fire({
+                        title: "获取cookie失败，请稍后再试",
+                        text: "没获取到cookie，请重试",
+                        icon: "error",
+                    }).then((result) => {
+                        window.location.reload(true);
+                    })
+                } else {
+                    Swal.fire({
+                        title: "获取cookie成功",
+                        text: "cookie= " + userCookie,
+                        html: '<div class="cookieCon" style="font-size:12px;">' +
+                            userCookie + '</div>',
+                        icon: "success",
+                        confirmButtonText: "复制Cookie",
+                    }).then((result) => {
+                        copyToClip(userCookie);
+                        window.location.reload(true);
+                    });
+                }
+                return "success";
+            });
+        }
     });
+
+
 </script>
 </body>
 {{end}}

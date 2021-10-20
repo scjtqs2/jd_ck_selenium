@@ -20,10 +20,9 @@ func Run(ct *dig.Container) {
 	go func() {
 		signal.Notify(c, os.Interrupt, os.Kill)
 		<-c
-		os.Remove(geckoDriverPath)
-		service.Stop()
 		wd.Quit()
-		//gui.Destroy()
+		service.Stop()
+		os.Remove(geckoDriverPath)
 	}()
 	guiStart(httpPort, ct)
 
