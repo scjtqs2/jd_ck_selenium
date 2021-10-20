@@ -72,11 +72,11 @@ func (s *httpServer) httpStart(ct *dig.Container) int {
 	s.engine.GET("assets/*action", func(c *gin.Context) {
 		c.FileFromFS("static/www/assets/"+c.Param("action"), http.FS(f))
 	})
-	port ,_:=pickUnusedPort()
+	port, _ := pickUnusedPort()
 	//port := 10987
 	go func() {
 		s.HTTP = &http.Server{
-			Addr:    fmt.Sprintf("127.0.0.1:%d",port),
+			Addr:    fmt.Sprintf("127.0.0.1:%d", port),
 			Handler: s.engine,
 		}
 		if err := s.HTTP.ListenAndServe(); err != nil && err != http.ErrServerClosed {

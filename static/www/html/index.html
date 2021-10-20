@@ -122,30 +122,6 @@
                     });
                 }
             });
-            // getck().then(function(userCookie) {
-            //     console.log(userCookie)
-            //     if (userCookie === "") {
-            //         Swal.fire({
-            //             title: "获取cookie失败，请稍后再试",
-            //             text: "没获取到cookie，请重试",
-            //             icon: "error",
-            //         }).then((result) => {
-            //             window.location.reload(true);
-            //         })
-            //     } else {
-            //         Swal.fire({
-            //             title: "获取cookie成功",
-            //             text: "cookie= " + userCookie,
-            //             html: '<div class="cookieCon" style="font-size:12px;">' +
-            //                 userCookie + '</div>',
-            //             icon: "success",
-            //             confirmButtonText: "复制Cookie",
-            //         }).then((result) => {
-            //             copyToClip(userCookie);
-            //             window.location.reload(true);
-            //         })
-            //     }
-            // })
         });
         $('.qframe-close').click(function () {
             $("#qrcontainer").addClass("hidden");
@@ -154,6 +130,32 @@
         $('#wrap').click(function () {
             var lineWrapping = editor.getOption('lineWrapping');
             editor.setOption('lineWrapping', !lineWrapping);
+        });
+        // This will listen to messages sent by GO
+        astilectron.onMessage(function(userCookie) {
+            // Process message
+            console.log("received " + userCookie)
+            if (userCookie === "") {
+                Swal.fire({
+                    title: "获取cookie失败，请稍后再试",
+                    text: "没获取到cookie，请重试",
+                    icon: "error",
+                }).then((result) => {
+                    window.location.reload(true);
+                })
+            } else {
+                Swal.fire({
+                    title: "获取cookie成功",
+                    text: "cookie= " + userCookie,
+                    html: '<div class="cookieCon" style="font-size:12px;">' +
+                        userCookie + '</div>',
+                    icon: "success",
+                    confirmButtonText: "复制Cookie",
+                }).then((result) => {
+                    copyToClip(userCookie);
+                    window.location.reload(true);
+                });
+            }
         });
     });
 </script>

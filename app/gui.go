@@ -8,10 +8,11 @@ import (
 	"go.uber.org/dig"
 	"os"
 )
+
 // New window
 var w *astilectron.Window
 
-func guiStart(port int, ct *dig.Container)  {
+func guiStart(port int, ct *dig.Container) {
 	// Initialize astilectron
 	var a, _ = astilectron.New(log.New(), astilectron.Options{
 		AppName:           "jd_cookie_Tools",
@@ -26,7 +27,6 @@ func guiStart(port int, ct *dig.Container)  {
 	if err = a.Start(); err != nil {
 		log.Fatalf("main: starting astilectron failed: %w", err)
 	}
-
 
 	if w, err = a.NewWindow(fmt.Sprintf("http://127.0.0.1:%d/", port), &astilectron.WindowOptions{
 		Center: astikit.BoolPtr(true),
@@ -67,7 +67,7 @@ func guiStart(port int, ct *dig.Container)  {
 	if err := w.Create(); err != nil {
 		log.Fatal(fmt.Errorf("main: creating window failed: %w", err))
 	}
-	
+
 	// Open dev tools
 	//w.OpenDevTools()
 

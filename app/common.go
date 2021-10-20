@@ -2,12 +2,11 @@ package app
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"net"
 	"os"
 	"runtime"
 	"time"
-	"github.com/google/uuid"
-
 )
 
 type MSG map[string]interface{}
@@ -31,7 +30,6 @@ func GetDate() string {
 	year, month, day := t.Date()
 	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
-
 
 // 随机获取一个头像
 func Getavator() string {

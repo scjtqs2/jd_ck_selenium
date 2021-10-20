@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"github.com/asticode/go-astilectron"
 	"github.com/guonaihong/gout"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
@@ -20,7 +21,7 @@ const cache_key_cookie = "CACHE_FOR_COOKIE_TOKEN_"
 var timeout = time.Second * 5
 
 // 获取cookie并校验cookie 是否存在
-func GetCookies(wd selenium.WebDriver) {
+func GetCookies(wd selenium.WebDriver, ct *dig.Container) {
 	for {
 		select {
 		case <-c:
@@ -45,6 +46,7 @@ func GetCookies(wd selenium.WebDriver) {
 				log.Info("####################################################")
 				cookie := fmt.Sprintf("pt_pin=%s, pt_key=%s", pt_pin, pt_key)
 				cache.Set(cache_key_cookie, cookie)
+				postWebHookCk(ct, cookie)
 				return
 			}
 		}
@@ -54,6 +56,15 @@ func GetCookies(wd selenium.WebDriver) {
 
 // 推送到远程服务器
 func postWebHookCk(ct *dig.Container, cookie string) {
+	// This will send a message and execute a callback
+	// Callbacks are optional
+	w.SendMessage(cookie, func(m *astilectron.EventMessage) {
+		// Unmarshal
+		var s string
+		m.Unmarshal(&s)
+		// Process message
+		log.Printf("received %s\n", s)
+	})
 	////发送数据给 挂机服务器
 	postUrl := ""
 	ct.Invoke(func(WebHookUrl string) {
@@ -164,37 +175,6 @@ func GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	return dst, err
 }
 
-func Copydll(ct *dig.Container)  {
-	if runtime.GOOS == "windows" {
-		var f embed.FS
-		ct.Invoke(func(static embed.FS) {
-			f = static
-		})
-		d1 :="static/webview.dll"
-		d2 :="static/WebView2Loader.dll"
-		sd1 := "./webview.dll"
-		sd2 := "./WebView2Loader.dl"
-		if !util.PathExists(sd1) {
-			testFile, err := f.Open(d1)
-			destination, err := os.Create(sd1)
-			if err != nil {
-				return
-			}
-			defer destination.Close()
-			_, err = io.Copy(destination, testFile)
-		}
-		if !util.PathExists(sd2) {
-			testFile, err := f.Open(d2)
-			destination, err := os.Create(sd1)
-			if err != nil {
-				return
-			}
-			defer destination.Close()
-			_, err = io.Copy(destination, testFile)
-		}
-	}
-}
-
 func seRun(ct *dig.Container) {
 	p, _ := pickUnusedPort()
 	//p := 18777
@@ -227,5 +207,5 @@ func seRun(ct *dig.Container) {
 	if err := wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
 		panic(err)
 	}
-	go GetCookies(wd)
+	go GetCookies(wd, ct)
 }
