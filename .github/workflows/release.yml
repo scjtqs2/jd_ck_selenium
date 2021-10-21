@@ -4,7 +4,12 @@ on:
   push:
     tags:
       - 'v*'
-
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Person to greet'
+        required: true
+        default: 'v1'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
