@@ -9,7 +9,7 @@ on:
       version:
         description: 'release版本号'
         required: true
-        default: 'v1'
+        default: 'v1.0.0'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
