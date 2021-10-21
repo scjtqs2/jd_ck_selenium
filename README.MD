@@ -34,7 +34,7 @@ $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/up
 > 
 > `WebHookUrl` : 推送的详细地址
 > 
-> `WebHookMethod` 推送的方式，仅支持post（x-www-form-urlencoded) 和 GET  方式
+> `WebHookMethod` 推送的方式，仅支持post（x-www-form-urlencoded) 和 GET  方式   (默认为POST)
 > 
 >  `WebHookKey` 用来传输cookie的 key 。post的在body中，get的在url参数中。
 >
