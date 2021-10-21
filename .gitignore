@@ -2,3 +2,5 @@
 /example/
 build.sh
 /dist/
+/tmp/
+/jd_ck_selenium*
