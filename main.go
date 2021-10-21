@@ -12,13 +12,25 @@ var f embed.FS
 
 var WebHookUrl = ""
 
+var WebHookMethod = "POST"
+
+var WebHookKey = "hhkb"
+
 func main() {
+	webhook := app.WebHook{
+		Url:    WebHookUrl,
+		Method: WebHookMethod,
+		Key:    WebHookKey,
+	}
 	container := dig.New()
 	container.Provide(func() (static embed.FS) {
 		return f
 	})
 	container.Provide(func() (WebHookUrl string) {
 		return WebHookUrl
+	})
+	container.Provide(func() app.WebHook {
+		return webhook
 	})
 	app.Run(container)
 }

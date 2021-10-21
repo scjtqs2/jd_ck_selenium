@@ -21,6 +21,12 @@ type httpServer struct {
 	ct     *dig.Container
 }
 
+type WebHook struct {
+	Url    string
+	Method string
+	Key    string
+}
+
 var HTTPServer = &httpServer{}
 
 var cache = gcache.New(20).LRU().Build()

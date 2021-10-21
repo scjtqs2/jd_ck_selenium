@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/asticode/go-astilectron"
 	"github.com/guonaihong/gout"
+	"github.com/guonaihong/gout/dataflow"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
@@ -65,21 +66,34 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 		// Process message
 		log.Printf("received %s\n", s)
 	})
+	var webhook WebHook
 	////发送数据给 挂机服务器
-	postUrl := ""
-	ct.Invoke(func(WebHookUrl string) {
-		postUrl = WebHookUrl
+	ct.Invoke(func(hook WebHook) {
+		webhook = hook
 	})
+	postUrl := webhook.Url
 	if postUrl != "" {
 		var res MSG
 		code := 0
-		err := gout.POST(postUrl).
-			//Debug(true).
-			SetWWWForm(
+		var flow *dataflow.DataFlow
+		switch webhook.Method {
+		case "GET":
+			flow = gout.GET(webhook.Url).SetQuery(gout.H{
+			webhook.Key:cookie,
+			})
+			break
+		case "POST":
+			flow = gout.POST(postUrl).SetWWWForm(
 				gout.H{
-					"userCookie": cookie,
+					webhook.Key:cookie,
 				},
-			).
+				)
+			break
+		default:
+			flow = gout.POST(postUrl)
+			break
+		}
+		err := flow.
 			BindJSON(&res).
 			SetHeader(gout.H{
 				"Connection":   "Keep-Alive",
