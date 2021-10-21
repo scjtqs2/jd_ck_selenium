@@ -16,6 +16,8 @@ var WebHookMethod = "POST"
 
 var WebHookKey = "hhkb"
 
+var SeType = "firefox"
+
 func main() {
 	webhook := app.WebHook{
 		Url:    WebHookUrl,
@@ -26,11 +28,9 @@ func main() {
 	container.Provide(func() (static embed.FS) {
 		return f
 	})
-	container.Provide(func() (WebHookUrl string) {
-		return WebHookUrl
-	})
 	container.Provide(func() app.WebHook {
 		return webhook
 	})
+	app.SeType=SeType
 	app.Run(container)
 }

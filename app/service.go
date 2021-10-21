@@ -9,18 +9,18 @@ import (
 
 var c = make(chan os.Signal, 1)
 
-//var svc = geckoDriver
-var svc = chromeDriver
+var svc SeInterface
 
 func Run(ct *dig.Container) {
+	svc, _ = NewSeService(ct)
 	//启动gin的http服务
 	httpPort := HTTPServer.httpStart(ct)
 	go func() {
 		signal.Notify(c, os.Interrupt, os.Kill)
 		<-c
-		svc.Wd.Quit()
-		svc.Service.Stop()
-		os.Remove(svc.DriverPath)
+		svc.GetWd().Quit()
+		svc.GetService().Stop()
+		os.Remove(svc.GetFileDriverPath())
 	}()
 	guiStart(httpPort, ct)
 

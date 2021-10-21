@@ -20,9 +20,9 @@ func guiStart(port int, ct *dig.Container) {
 	})
 	defer a.Close()
 	defer func() {
-		svc.Wd.Quit()
-		svc.Service.Stop()
-		os.Remove(svc.DriverPath)
+		svc.GetWd().Quit()
+		svc.GetService().Stop()
+		os.Remove(svc.GetFileDriverPath())
 		c <- os.Kill
 	}()
 	var err error
@@ -42,7 +42,7 @@ func guiStart(port int, ct *dig.Container) {
 		log.Fatal(fmt.Errorf("main: new window failed: %w", err))
 	}
 	// This will listen to messages sent by Javascript
-	w.OnMessage(func(m *astilectron.EventMessage) interface{} {
+	w.OnMessage(func(m *astilectron.EventMessage) (res interface{}) {
 		// Unmarshal
 		var s string
 		m.Unmarshal(&s)
@@ -50,15 +50,43 @@ func guiStart(port int, ct *dig.Container) {
 		// Process message
 		switch s {
 		case "quit":
-			os.Remove(svc.DriverPath)
-			svc.Wd.Quit()
-			svc.Service.Stop()
+			os.Remove(svc.GetFileDriverPath())
+			svc.GetWd().Quit()
+			svc.GetService().Stop()
 			c <- os.Kill
 			w.Destroy()
 			a.Close()
 			break
 		case "open":
-			svc.seRun(ct)
+			defer func() {
+				//打开异常，换种方法打开
+				if err := recover(); err != nil {
+					if SeType == "firefox" {
+						SeType = "chrome"
+						svc = NewChromeService(ct)
+					} else {
+						SeType = "firefox"
+						svc = NewGeckoService(ct)
+					}
+					svc.SeRun(ct)
+					res = "success"
+				}
+			}()
+			if err := svc.SeRun(ct); err != nil {
+				log.Errorf("faild to open firefox err=%w",err)
+				if SeType == "firefox" {
+					SeType = "chrome"
+					svc = NewChromeService(ct)
+				} else {
+					SeType = "firefox"
+					svc = NewGeckoService(ct)
+				}
+				log.Infof("chrome while to be opened")
+				err := svc.SeRun(ct)
+				if err != nil {
+					log.Errorf("faild to open chrome err=%w",err)
+				}
+			}
 			break
 		case "getck":
 			cookie, err := cache.Get(cache_key_cookie)

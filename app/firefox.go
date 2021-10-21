@@ -23,7 +23,21 @@ type GeckoDriver struct {
 	DriverPath string
 }
 
-var geckoDriver = &GeckoDriver{}
+func (ge *GeckoDriver) GetWd() selenium.WebDriver {
+	return ge.Wd
+}
+
+func (ge *GeckoDriver) GetService() *selenium.Service {
+	return ge.Service
+}
+
+func (ge *GeckoDriver) GetFileDriverPath() string {
+	return ge.DriverPath
+}
+
+func NewGeckoService(ct *dig.Container) SeInterface {
+	return &GeckoDriver{}
+}
 
 // 获取cookie并校验cookie 是否存在
 func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
@@ -60,7 +74,7 @@ func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
 }
 
 // 获取 系统和架构，读取geckodriver的位置
-func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
+func (ge *GeckoDriver) GetDriverPath(ct *dig.Container) (string, error) {
 	src := ""
 	osname := ""
 	filename := ""
@@ -69,7 +83,7 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	switch runtime.GOOS {
 	case "windows":
 		osname = "win"
-		switch runtime.GOOS {
+		switch runtime.GOARCH {
 		case "amd64":
 			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
 			filename = fmt.Sprintf("geckodriver-%s-%s64.tar.gz", geckoVersion, osname)
@@ -85,7 +99,7 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 		break
 	case "darwin":
 		osname = "macos"
-		if runtime.GOOS == "arm64" {
+		if runtime.GOARCH == "arm64" {
 			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s-aarch64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
 			filename = fmt.Sprintf("geckodriver-%s-%s-aarch64.tar.gz", geckoVersion, osname)
 		} else {
@@ -95,7 +109,7 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 		break
 	case "linux":
 		osname = "linux"
-		switch runtime.GOOS {
+		switch runtime.GOARCH {
 		case "amd64":
 			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
 			filename = fmt.Sprintf("geckodriver-%s-%s64.tar.gz", geckoVersion, osname)
@@ -134,37 +148,35 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
 
-func (ge *GeckoDriver) seRun(ct *dig.Container) {
+func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 	p, _ := pickUnusedPort()
 	//p := 18777
 	opts := []selenium.ServiceOption{
 		//selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
 		//selenium.Output(os.Stderr), // Output debug information to STDERR.
 	}
-	var err error
-	//defer func() {
-	//	c <- os.Kill
-	//}()
-	ge.DriverPath, err = ge.GetGeckoDriverPath(ct)
+
+	ge.DriverPath, err = ge.GetDriverPath(ct)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	selenium.SetDebug(false)
 	ge.Service, err = selenium.NewGeckoDriverService(ge.DriverPath, p, opts...)
 	if err != nil {
-		panic(err) // panic is used only as an example and is not otherwise recommended.
+		return err
 	}
 
 	// Connect to the WebDriver instance running locally.
 	caps := selenium.Capabilities{"browserName": "firefox"}
 	ge.Wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", p))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Navigate to the simple playground interface.
-	if err := ge.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
-		panic(err)
+	if err = ge.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
+		return err
 	}
 	go ge.GetCookies(ct)
+	return err
 }

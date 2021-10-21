@@ -23,7 +23,21 @@ type ChromeDriver struct {
 	DriverPath string
 }
 
-var chromeDriver = &ChromeDriver{}
+func (ch *ChromeDriver) GetWd() selenium.WebDriver {
+	return ch.Wd
+}
+
+func (ch *ChromeDriver) GetService() *selenium.Service {
+	return ch.Service
+}
+
+func (ch *ChromeDriver) GetFileDriverPath() string {
+	return ch.DriverPath
+}
+
+func NewChromeService(ct *dig.Container) SeInterface {
+	return &ChromeDriver{}
+}
 
 // 获取cookie并校验cookie 是否存在
 func (ch *ChromeDriver) GetCookies(ct *dig.Container) {
@@ -59,9 +73,8 @@ func (ch *ChromeDriver) GetCookies(ct *dig.Container) {
 	}
 }
 
-
 // 获取 系统和架构，读取geckodriver的位置
-func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
+func (ch *ChromeDriver) GetDriverPath(ct *dig.Container) (string, error) {
 	src := ""
 	osname := ""
 	filename := ""
@@ -76,7 +89,7 @@ func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
 		break
 	case "darwin":
 		osname = "mac64"
-		if runtime.GOOS == "arm64" {
+		if runtime.GOARCH == "arm64" {
 			src = fmt.Sprintf("%s/%s/chromedriver_%s-m1.zip", chromeMirrors, chromeVersion, osname)
 			filename = fmt.Sprintf("chromedriver_%s-m1.zip", osname)
 		} else {
@@ -115,37 +128,34 @@ func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
 	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
 
-func (ch *ChromeDriver) seRun(ct *dig.Container) {
+func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 	p, _ := pickUnusedPort()
 	//p := 18777
 	opts := []selenium.ServiceOption{
 		//selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
 		//selenium.Output(os.Stderr), // Output debug information to STDERR.
 	}
-	var err error
-	//defer func() {
-	//	c <- os.Kill
-	//}()
-	ch.DriverPath, err = ch.GetChromeDriverPath(ct)
+	ch.DriverPath, err = ch.GetDriverPath(ct)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	selenium.SetDebug(false)
 	ch.Service, err = selenium.NewChromeDriverService(ch.DriverPath, p, opts...)
 	if err != nil {
-		panic(err) // panic is used only as an example and is not otherwise recommended.
+		return err
 	}
 
 	// Connect to the WebDriver instance running locally.
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	ch.Wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", p))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Navigate to the simple playground interface.
-	if err := ch.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
-		panic(err)
+	if err = ch.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
+		return err
 	}
 	go ch.GetCookies(ct)
+	return err
 }
