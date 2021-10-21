@@ -85,12 +85,12 @@ func (ge *GeckoDriver) GetDriverPath(ct *dig.Container) (string, error) {
 		osname = "win"
 		switch runtime.GOARCH {
 		case "amd64":
-			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
-			filename = fmt.Sprintf("geckodriver-%s-%s64.tar.gz", geckoVersion, osname)
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.zip", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s64.zip", geckoVersion, osname)
 			break
 		case "386":
-			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s32.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
-			filename = fmt.Sprintf("geckodriver-%s-%s32.tar.gz", geckoVersion, osname)
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s32.zip", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s32.zip", geckoVersion, osname)
 			break
 		default:
 			return "", errors.New("not support os")
