@@ -25,9 +25,9 @@ jobs:
           install-only: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: build release
-        run:|
+        run: |
           GOOS=darwin GOARCH=amd64 go build -ldflags=" -s" -o dist/jd_ck_selenium_macos_amd64
           GOOS=darwin GOARCH=arm64  go build -ldflags=" -s" -o dist/jd_ck_selenium_macos_arm64
           GOOS=linux GOARCH=amd64  go build -ldflags=" -s" -o dist/jd_ck_selenium_linux_amd64
