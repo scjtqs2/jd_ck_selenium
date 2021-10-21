@@ -1,28 +1,28 @@
 package app
 
 import (
-	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
 	"net"
 	"os"
 	"os/signal"
 )
 
-var geckoDriverPath string
-var service *selenium.Service
-var wd selenium.WebDriver
+//var geckoDriverPath string
+//var service *selenium.Service
+//var wd selenium.WebDriver
 var c = make(chan os.Signal, 1)
 
-func Run(ct *dig.Container) {
+var svc = chromeDriver
 
+func Run(ct *dig.Container) {
 	//启动gin的http服务
 	httpPort := HTTPServer.httpStart(ct)
 	go func() {
 		signal.Notify(c, os.Interrupt, os.Kill)
 		<-c
-		wd.Quit()
-		service.Stop()
-		os.Remove(geckoDriverPath)
+		svc.Wd.Quit()
+		svc.Service.Stop()
+		os.Remove(svc.DriverPath)
 	}()
 	guiStart(httpPort, ct)
 

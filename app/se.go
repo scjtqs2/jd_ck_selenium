@@ -17,18 +17,23 @@ import (
 	"time"
 )
 
-const cache_key_cookie = "CACHE_FOR_COOKIE_TOKEN_"
+type GeckoDriver struct {
+	Wd         selenium.WebDriver
+	Service    *selenium.Service
+	Ct         *dig.Container
+	DriverPath string
+}
 
-var timeout = time.Second * 5
+var geckoDriver = &GeckoDriver{}
 
 // 获取cookie并校验cookie 是否存在
-func GetCookies(wd selenium.WebDriver, ct *dig.Container) {
+func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
 	for {
 		select {
 		case <-c:
 			return
 		default:
-			cks, err := wd.GetCookies()
+			cks, err := ge.Wd.GetCookies()
 			var pt_pin, pt_key string
 			if err != nil {
 				return
@@ -47,7 +52,7 @@ func GetCookies(wd selenium.WebDriver, ct *dig.Container) {
 				log.Info("####################################################")
 				cookie := fmt.Sprintf("pt_pin=%s, pt_key=%s", pt_pin, pt_key)
 				cache.Set(cache_key_cookie, cookie)
-				postWebHookCk(ct, cookie)
+				ge.postWebHookCk(ct, cookie)
 				return
 			}
 		}
@@ -56,7 +61,7 @@ func GetCookies(wd selenium.WebDriver, ct *dig.Container) {
 }
 
 // 推送到远程服务器
-func postWebHookCk(ct *dig.Container, cookie string) {
+func (ge *GeckoDriver) postWebHookCk(ct *dig.Container, cookie string) {
 	// This will send a message and execute a callback
 	// Callbacks are optional
 	w.SendMessage(cookie, func(m *astilectron.EventMessage) {
@@ -79,15 +84,15 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 		switch webhook.Method {
 		case "GET":
 			flow = gout.GET(webhook.Url).SetQuery(gout.H{
-			webhook.Key:cookie,
+				webhook.Key: cookie,
 			})
 			break
 		case "POST":
 			flow = gout.POST(postUrl).SetWWWForm(
 				gout.H{
-					webhook.Key:cookie,
+					webhook.Key: cookie,
 				},
-				)
+			)
 			break
 		default:
 			flow = gout.POST(postUrl)
@@ -116,7 +121,7 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 }
 
 // 获取 系统和架构，读取geckodriver的位置
-func GetGeckoDriverPath(ct *dig.Container) (string, error) {
+func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	path := "static/geckodriver-"
 	osname := ""
 	arch := ""
@@ -189,7 +194,7 @@ func GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	return dst, err
 }
 
-func seRun(ct *dig.Container) {
+func (ge *GeckoDriver) seRun(ct *dig.Container) {
 	p, _ := pickUnusedPort()
 	//p := 18777
 	opts := []selenium.ServiceOption{
@@ -200,26 +205,26 @@ func seRun(ct *dig.Container) {
 	//defer func() {
 	//	c <- os.Kill
 	//}()
-	geckoDriverPath, err = GetGeckoDriverPath(ct)
+	ge.DriverPath, err = ge.GetGeckoDriverPath(ct)
 	if err != nil {
 		panic(err)
 	}
 	selenium.SetDebug(false)
-	service, err = selenium.NewGeckoDriverService(geckoDriverPath, p, opts...)
+	ge.Service, err = selenium.NewGeckoDriverService(ge.DriverPath, p, opts...)
 	if err != nil {
 		panic(err) // panic is used only as an example and is not otherwise recommended.
 	}
 
 	// Connect to the WebDriver instance running locally.
 	caps := selenium.Capabilities{"browserName": "firefox"}
-	wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", p))
+	ge.Wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", p))
 	if err != nil {
 		panic(err)
 	}
 
 	// Navigate to the simple playground interface.
-	if err := wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
+	if err := ge.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
 		panic(err)
 	}
-	go GetCookies(wd, ct)
+	go ge.GetCookies(ct)
 }
