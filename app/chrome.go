@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/guonaihong/gout"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
@@ -80,6 +81,7 @@ func (ch *ChromeDriver) GetDriverPath(ct *dig.Container) (string, error) {
 	filename := ""
 	bfile := "chromedriver"
 	var err error
+	chromeVersion, err = ch.CheckLastVersion()
 	switch runtime.GOOS {
 	case "windows":
 		osname = "win32"
@@ -124,7 +126,7 @@ func (ch *ChromeDriver) GetDriverPath(ct *dig.Container) (string, error) {
 	}
 	dst := "./tmp"
 	util.Download(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
-	util.Unzip(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
+	util.Unpack(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
 	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
 
@@ -158,4 +160,19 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 	}
 	go ch.GetCookies(ct)
 	return err
+}
+
+func (ch *ChromeDriver) CheckLastVersion() (version string, err error) {
+	url := "https://npm.taobao.org/mirrors/chromedriver/LATEST_RELEASE"
+	code := 0
+	err = gout.GET(url).BindBody(&version).Code(&code).
+		SetTimeout(timeout).
+		F().Retry().Attempt(5).
+		WaitTime(time.Millisecond * 500).MaxWaitTime(time.Second * 5).
+		Do()
+	if err != nil || code != 200 {
+		return chromeVersion, err
+	}
+	log.Infof("latest chrome version =%s ", version)
+	return version, err
 }

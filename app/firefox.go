@@ -180,3 +180,7 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 	go ge.GetCookies(ct)
 	return err
 }
+
+func (ge *GeckoDriver) CheckLastVersion() (version string, err error) {
+	return geckoVersion, nil
+}

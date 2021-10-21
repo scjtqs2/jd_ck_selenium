@@ -8,10 +8,11 @@ import (
 type SeInterface interface {
 	GetCookies(ct *dig.Container)
 	GetDriverPath(ct *dig.Container) (string, error)
-	SeRun(ct *dig.Container) (error)
+	SeRun(ct *dig.Container) error
 	GetWd() selenium.WebDriver
 	GetService() *selenium.Service
 	GetFileDriverPath() string
+	CheckLastVersion() (version string, err error)
 }
 
 var SeType string
