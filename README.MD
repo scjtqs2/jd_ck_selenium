@@ -1,9 +1,12 @@
 # 使用说明
 
-> 请安装 firefox浏览器
+> ~~请安装 firefox浏览器~~
 > 
-> 使用的geckodrive是 v0.30.0版本
+> ~~使用的geckodrive是 v0.30.0版本~~
 > 
+> 请按照 Chrome浏览器
+> 
+> 使用的ChromeDriver 是 v94版本
 
 ## 第一次启动会加载一段时间，请耐心等待（下载electron依赖） 后续使用就快了。
 

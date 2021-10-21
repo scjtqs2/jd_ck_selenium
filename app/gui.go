@@ -20,9 +20,9 @@ func guiStart(port int, ct *dig.Container) {
 	})
 	defer a.Close()
 	defer func() {
-		wd.Quit()
-		service.Stop()
-		os.Remove(geckoDriverPath)
+		svc.Wd.Quit()
+		svc.Service.Stop()
+		os.Remove(svc.DriverPath)
 		c <- os.Kill
 	}()
 	var err error
@@ -50,15 +50,15 @@ func guiStart(port int, ct *dig.Container) {
 		// Process message
 		switch s {
 		case "quit":
-			os.Remove(geckoDriverPath)
-			wd.Quit()
-			service.Stop()
+			os.Remove(svc.DriverPath)
+			svc.Wd.Quit()
+			svc.Service.Stop()
 			c <- os.Kill
 			w.Destroy()
 			a.Close()
 			break
 		case "open":
-			seRun(ct)
+			svc.seRun(ct)
 			break
 		case "getck":
 			cookie, err := cache.Get(cache_key_cookie)

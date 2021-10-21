@@ -31,6 +31,10 @@ var HTTPServer = &httpServer{}
 
 var cache = gcache.New(20).LRU().Build()
 
+const cache_key_cookie = "CACHE_FOR_COOKIE_TOKEN_"
+
+var timeout = time.Second * 5
+
 func (s *httpServer) httpStart(ct *dig.Container) int {
 	var f embed.FS
 	ct.Invoke(func(static embed.FS) {
