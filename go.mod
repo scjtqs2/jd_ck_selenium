@@ -14,3 +14,5 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	go.uber.org/dig v1.13.0
 )
+
+replace github.com/asticode/go-astilectron => github.com/scjtqs2/go-astilectron v0.25.1-0.20211021032607-e756e854fd73
