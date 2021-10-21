@@ -1,13 +1,13 @@
 name: release
 
 on:
-  push:
-    tags:
-      - 'v*'
+#  push:
+#    tags:
+#      - 'v*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Person to greet'
+        description: 'release版本号'
         required: true
         default: 'v1'
 jobs:
@@ -39,8 +39,35 @@ jobs:
           GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_amd64.exe
           GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_i386.exe
 
-      - name: Upload assets
-        uses: actions/upload-artifact@v2
+#      - name: Upload assets
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: jd_ck_selenium
+#          path: dist/*
+
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.event.inputs.name }}
+#          release_name: Release ${{ github.event.inputs.name }}
+#          draft: false
+#          prerelease: false
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: scjtqs2/jd_ck_selenium
         with:
-          name: jd_ck_selenium
-          path: dist/*
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          files: |
+            dist/jd_ck_selenium_macos_amd64
+            dist/jd_ck_selenium_macos_arm64
+            dist/jd_ck_selenium_linux_amd64
+            dist/jd_ck_selenium_linux_amd64
+            dist/jd_ck_selenium_windows_amd64.exe
+            dist/jd_ck_selenium_windows_i386.exe
+          name: Release ${{ github.event.inputs.version }}
+          tag_name: ${{ github.event.inputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
