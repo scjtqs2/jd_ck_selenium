@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -10,16 +11,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
-	"io"
 	"jd_ck_selenium/util"
-	"os"
 	"runtime"
 	"time"
 )
 
-//const cache_key_cookie = "CACHE_FOR_COOKIE_TOKEN_"
+var chromeVersion = "95.0.4638.17"
 
-//var timeout = time.Second * 5
+var mirrors = "https://npm.taobao.org/mirrors/chromedriver"
 
 type ChromeDriver struct {
 	Wd         selenium.WebDriver
@@ -126,9 +125,10 @@ func (ch *ChromeDriver) postWebHookCk(ct *dig.Container, cookie string) {
 
 // 获取 系统和架构，读取geckodriver的位置
 func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
-	path := "static/chromedriver-"
+	src := ""
 	osname := ""
-	arch := ""
+	filename := ""
+	bfile := "chromedriver"
 	var err error
 	var f embed.FS
 	ct.Invoke(func(static embed.FS) {
@@ -136,13 +136,25 @@ func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
 	})
 	switch runtime.GOOS {
 	case "windows":
-		osname = "win"
+		osname = "win32"
+		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+		filename = fmt.Sprintf("chromedriver_%s.zip", osname)
+		bfile = "chromedriver.exe"
 		break
 	case "darwin":
-		osname = "macos"
+		osname = "mac64"
+		if runtime.GOOS == "arm64" {
+			src = fmt.Sprintf("%s/%s/chromedriver_%s-m1.zip", mirrors, chromeVersion, osname)
+			filename = fmt.Sprintf("chromedriver_%s-m1.zip", osname)
+		} else {
+			src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+			filename = fmt.Sprintf("chromedriver_%s.zip", osname)
+		}
 		break
 	case "linux":
-		osname = "linux"
+		osname = "linux64"
+		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+		filename = fmt.Sprintf("chromedriver_%s.zip", osname)
 		break
 	default:
 		log.Errorf("os =%s,arch=%s \n", runtime.GOOS, runtime.GOARCH)
@@ -150,52 +162,24 @@ func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
 	}
 	switch runtime.GOARCH {
 	case "arm64":
-		arch = "arm64"
-		if osname != "macos" {
+		if osname != "mac64" {
 			return "", errors.New("not support arch")
 		}
 		break
 	case "amd64":
-		arch = "amd64"
-		if osname == "win" {
-			arch = "32.exe"
-		}
 		break
 	case "386":
-		arch = "32.exe"
-		if osname != "win" {
+		if osname != "win32" {
 			return "", errors.New("not support arch")
 		}
 		break
 	default:
 		return "", errors.New("not support arch")
 	}
-	filepath := path + osname + "-" + arch
-	testFile, err := f.Open(filepath)
-	if err != nil {
-		return "", err
-	}
-	//将文件拷贝到tmp文件夹下
-	defer testFile.Close()
-	dst := "./chromedriver-" + osname + "-" + arch
-	if osname == "win" {
-		dst = dst + ".exe"
-	}
-	if !util.PathExists(dst) {
-		destination, err := os.Create(dst)
-		if err != nil {
-			if osname != "win" {
-				dst = "/tmp/chromedriver-" + osname + "-" + arch
-				destination, err = os.Create(dst)
-			} else {
-				return "", err
-			}
-		}
-		defer destination.Close()
-		_, err = io.Copy(destination, testFile)
-		destination.Chmod(0755)
-	}
-	return dst, err
+	dst := "./tmp"
+	util.Download(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
+	util.Unzip(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
+	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
 
 func (ch *ChromeDriver) seRun(ct *dig.Container) {
