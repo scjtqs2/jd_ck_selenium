@@ -1,21 +1,20 @@
 package app
 
 import (
-	"embed"
+	"context"
 	"errors"
 	"fmt"
-	"github.com/asticode/go-astilectron"
-	"github.com/guonaihong/gout"
-	"github.com/guonaihong/gout/dataflow"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
-	"io"
 	"jd_ck_selenium/util"
-	"os"
 	"runtime"
 	"time"
 )
+
+var geckoVersion = "v0.30.0"
+
+var geckoMirrors = "https://npm.taobao.org/mirrors/geckodriver"
 
 type GeckoDriver struct {
 	Wd         selenium.WebDriver
@@ -52,7 +51,7 @@ func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
 				log.Info("####################################################")
 				cookie := fmt.Sprintf("pt_pin=%s, pt_key=%s", pt_pin, pt_key)
 				cache.Set(cache_key_cookie, cookie)
-				ge.postWebHookCk(ct, cookie)
+				postWebHookCk(ct, cookie)
 				return
 			}
 		}
@@ -60,85 +59,54 @@ func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
 	}
 }
 
-// 推送到远程服务器
-func (ge *GeckoDriver) postWebHookCk(ct *dig.Container, cookie string) {
-	// This will send a message and execute a callback
-	// Callbacks are optional
-	w.SendMessage(cookie, func(m *astilectron.EventMessage) {
-		// Unmarshal
-		var s string
-		m.Unmarshal(&s)
-		// Process message
-		log.Printf("received %s\n", s)
-	})
-	var webhook WebHook
-	////发送数据给 挂机服务器
-	ct.Invoke(func(hook WebHook) {
-		webhook = hook
-	})
-	postUrl := webhook.Url
-	if postUrl != "" {
-		var res MSG
-		code := 0
-		var flow *dataflow.DataFlow
-		switch webhook.Method {
-		case "GET":
-			flow = gout.GET(webhook.Url).SetQuery(gout.H{
-				webhook.Key: cookie,
-			})
-			break
-		case "POST":
-			flow = gout.POST(postUrl).SetWWWForm(
-				gout.H{
-					webhook.Key: cookie,
-				},
-			)
-			break
-		default:
-			flow = gout.POST(postUrl)
-			break
-		}
-		err := flow.
-			BindJSON(&res).
-			SetHeader(gout.H{
-				"Connection":   "Keep-Alive",
-				"Content-Type": "application/x-www-form-urlencoded; Charset=UTF-8",
-				"Accept":       "application/json, text/plain, */*",
-				"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36",
-			}).
-			Code(&code).
-			SetTimeout(timeout).
-			F().Retry().Attempt(5).
-			WaitTime(time.Millisecond * 500).MaxWaitTime(time.Second * 5).
-			Do()
-		if err != nil || code != 200 {
-			log.Errorf("upsave notify post  usercookie to %s faild", postUrl)
-		} else {
-			log.Infof("upsave to url %s post usercookie=%s success", postUrl, cookie)
-		}
-		return
-	}
-}
-
 // 获取 系统和架构，读取geckodriver的位置
 func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
-	path := "static/geckodriver-"
+	src := ""
 	osname := ""
-	arch := ""
+	filename := ""
+	bfile := "geckodriver"
 	var err error
-	var f embed.FS
-	ct.Invoke(func(static embed.FS) {
-		f = static
-	})
 	switch runtime.GOOS {
 	case "windows":
 		osname = "win"
+		switch runtime.GOOS {
+		case "amd64":
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s64.tar.gz", geckoVersion, osname)
+			break
+		case "386":
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s32.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s32.tar.gz", geckoVersion, osname)
+			break
+		default:
+			return "", errors.New("not support os")
+		}
+		bfile = "geckodriver.exe"
 		break
 	case "darwin":
 		osname = "macos"
+		if runtime.GOOS == "arm64" {
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s-aarch64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s-aarch64.tar.gz", geckoVersion, osname)
+		} else {
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s.tar.gz", geckoVersion, osname)
+		}
 		break
 	case "linux":
 		osname = "linux"
+		switch runtime.GOOS {
+		case "amd64":
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s64.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s64.tar.gz", geckoVersion, osname)
+			break
+		case "386":
+			src = fmt.Sprintf("%s/%s/geckodriver-%s-%s32.tar.gz", geckoMirrors, geckoVersion, geckoVersion, osname)
+			filename = fmt.Sprintf("geckodriver-%s-%s32.tar.gz", geckoVersion, osname)
+			break
+		default:
+			return "", errors.New("not support os")
+		}
 		break
 	default:
 		log.Errorf("os =%s,arch=%s \n", runtime.GOOS, runtime.GOARCH)
@@ -146,19 +114,13 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	}
 	switch runtime.GOARCH {
 	case "arm64":
-		arch = "arm64"
 		if osname != "macos" {
 			return "", errors.New("not support arch")
 		}
 		break
 	case "amd64":
-		arch = "amd64"
-		if osname == "win" {
-			arch = "amd64.exe"
-		}
 		break
 	case "386":
-		arch = "i386.exe"
 		if osname != "win" {
 			return "", errors.New("not support arch")
 		}
@@ -166,32 +128,10 @@ func (ge *GeckoDriver) GetGeckoDriverPath(ct *dig.Container) (string, error) {
 	default:
 		return "", errors.New("not support arch")
 	}
-	filepath := path + osname + "-" + arch
-	testFile, err := f.Open(filepath)
-	if err != nil {
-		return "", err
-	}
-	//将文件拷贝到tmp文件夹下
-	defer testFile.Close()
-	dst := "./geckodriver-" + osname + "-" + arch
-	if osname == "win" {
-		dst = dst + ".exe"
-	}
-	if !util.PathExists(dst) {
-		destination, err := os.Create(dst)
-		if err != nil {
-			if osname != "win" {
-				dst = "/tmp/geckodriver-" + osname + "-" + arch
-				destination, err = os.Create(dst)
-			} else {
-				return "", err
-			}
-		}
-		defer destination.Close()
-		_, err = io.Copy(destination, testFile)
-		destination.Chmod(0755)
-	}
-	return dst, err
+	dst := "./tmp"
+	util.Download(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
+	util.Unpack(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
+	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
 
 func (ge *GeckoDriver) seRun(ct *dig.Container) {

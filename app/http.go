@@ -3,10 +3,13 @@ package app
 import (
 	"embed"
 	"fmt"
+	"github.com/asticode/go-astilectron"
 	"github.com/bluele/gcache"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
+	"github.com/guonaihong/gout"
+	"github.com/guonaihong/gout/dataflow"
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/dig"
 	"html/template"
@@ -98,4 +101,64 @@ func (s *httpServer) httpStart(ct *dig.Container) int {
 		}
 	}()
 	return port
+}
+
+// 推送到远程服务器
+func postWebHookCk(ct *dig.Container, cookie string) {
+	// This will send a message and execute a callback
+	// Callbacks are optional
+	w.SendMessage(cookie, func(m *astilectron.EventMessage) {
+		// Unmarshal
+		var s string
+		m.Unmarshal(&s)
+		// Process message
+		log.Printf("received %s\n", s)
+	})
+	var webhook WebHook
+	////发送数据给 挂机服务器
+	ct.Invoke(func(hook WebHook) {
+		webhook = hook
+	})
+	postUrl := webhook.Url
+	if postUrl != "" {
+		var res MSG
+		code := 0
+		var flow *dataflow.DataFlow
+		switch webhook.Method {
+		case "GET":
+			flow = gout.GET(webhook.Url).SetQuery(gout.H{
+				webhook.Key: cookie,
+			})
+			break
+		case "POST":
+			flow = gout.POST(postUrl).SetWWWForm(
+				gout.H{
+					webhook.Key: cookie,
+				},
+			)
+			break
+		default:
+			flow = gout.POST(postUrl)
+			break
+		}
+		err := flow.
+			BindJSON(&res).
+			SetHeader(gout.H{
+				"Connection":   "Keep-Alive",
+				"Content-Type": "application/x-www-form-urlencoded; Charset=UTF-8",
+				"Accept":       "application/json, text/plain, */*",
+				"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36",
+			}).
+			Code(&code).
+			SetTimeout(timeout).
+			F().Retry().Attempt(5).
+			WaitTime(time.Millisecond * 500).MaxWaitTime(time.Second * 5).
+			Do()
+		if err != nil || code != 200 {
+			log.Errorf("upsave notify post  usercookie to %s faild", postUrl)
+		} else {
+			log.Infof("upsave to url %s post usercookie=%s success", postUrl, cookie)
+		}
+		return
+	}
 }

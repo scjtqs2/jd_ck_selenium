@@ -2,12 +2,8 @@ package app
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
-	"github.com/asticode/go-astilectron"
-	"github.com/guonaihong/gout"
-	"github.com/guonaihong/gout/dataflow"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"go.uber.org/dig"
@@ -18,7 +14,7 @@ import (
 
 var chromeVersion = "95.0.4638.17"
 
-var mirrors = "https://npm.taobao.org/mirrors/chromedriver"
+var chromeMirrors = "https://npm.taobao.org/mirrors/chromedriver"
 
 type ChromeDriver struct {
 	Wd         selenium.WebDriver
@@ -55,7 +51,7 @@ func (ch *ChromeDriver) GetCookies(ct *dig.Container) {
 				log.Info("####################################################")
 				cookie := fmt.Sprintf("pt_pin=%s, pt_key=%s", pt_pin, pt_key)
 				cache.Set(cache_key_cookie, cookie)
-				ch.postWebHookCk(ct, cookie)
+				postWebHookCk(ct, cookie)
 				return
 			}
 		}
@@ -63,65 +59,6 @@ func (ch *ChromeDriver) GetCookies(ct *dig.Container) {
 	}
 }
 
-// 推送到远程服务器
-func (ch *ChromeDriver) postWebHookCk(ct *dig.Container, cookie string) {
-	// This will send a message and execute a callback
-	// Callbacks are optional
-	w.SendMessage(cookie, func(m *astilectron.EventMessage) {
-		// Unmarshal
-		var s string
-		m.Unmarshal(&s)
-		// Process message
-		log.Printf("received %s\n", s)
-	})
-	var webhook WebHook
-	////发送数据给 挂机服务器
-	ct.Invoke(func(hook WebHook) {
-		webhook = hook
-	})
-	postUrl := webhook.Url
-	if postUrl != "" {
-		var res MSG
-		code := 0
-		var flow *dataflow.DataFlow
-		switch webhook.Method {
-		case "GET":
-			flow = gout.GET(webhook.Url).SetQuery(gout.H{
-				webhook.Key: cookie,
-			})
-			break
-		case "POST":
-			flow = gout.POST(postUrl).SetWWWForm(
-				gout.H{
-					webhook.Key: cookie,
-				},
-			)
-			break
-		default:
-			flow = gout.POST(postUrl)
-			break
-		}
-		err := flow.
-			BindJSON(&res).
-			SetHeader(gout.H{
-				"Connection":   "Keep-Alive",
-				"Content-Type": "application/x-www-form-urlencoded; Charset=UTF-8",
-				"Accept":       "application/json, text/plain, */*",
-				"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36",
-			}).
-			Code(&code).
-			SetTimeout(timeout).
-			F().Retry().Attempt(5).
-			WaitTime(time.Millisecond * 500).MaxWaitTime(time.Second * 5).
-			Do()
-		if err != nil || code != 200 {
-			log.Errorf("upsave notify post  usercookie to %s faild", postUrl)
-		} else {
-			log.Infof("upsave to url %s post usercookie=%s success", postUrl, cookie)
-		}
-		return
-	}
-}
 
 // 获取 系统和架构，读取geckodriver的位置
 func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
@@ -130,30 +67,26 @@ func (ch *ChromeDriver) GetChromeDriverPath(ct *dig.Container) (string, error) {
 	filename := ""
 	bfile := "chromedriver"
 	var err error
-	var f embed.FS
-	ct.Invoke(func(static embed.FS) {
-		f = static
-	})
 	switch runtime.GOOS {
 	case "windows":
 		osname = "win32"
-		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", chromeMirrors, chromeVersion, osname)
 		filename = fmt.Sprintf("chromedriver_%s.zip", osname)
 		bfile = "chromedriver.exe"
 		break
 	case "darwin":
 		osname = "mac64"
 		if runtime.GOOS == "arm64" {
-			src = fmt.Sprintf("%s/%s/chromedriver_%s-m1.zip", mirrors, chromeVersion, osname)
+			src = fmt.Sprintf("%s/%s/chromedriver_%s-m1.zip", chromeMirrors, chromeVersion, osname)
 			filename = fmt.Sprintf("chromedriver_%s-m1.zip", osname)
 		} else {
-			src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+			src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", chromeMirrors, chromeVersion, osname)
 			filename = fmt.Sprintf("chromedriver_%s.zip", osname)
 		}
 		break
 	case "linux":
 		osname = "linux64"
-		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", mirrors, chromeVersion, osname)
+		src = fmt.Sprintf("%s/%s/chromedriver_%s.zip", chromeMirrors, chromeVersion, osname)
 		filename = fmt.Sprintf("chromedriver_%s.zip", osname)
 		break
 	default:

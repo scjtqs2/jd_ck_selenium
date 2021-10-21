@@ -7,11 +7,9 @@ import (
 	"os/signal"
 )
 
-//var geckoDriverPath string
-//var service *selenium.Service
-//var wd selenium.WebDriver
 var c = make(chan os.Signal, 1)
 
+//var svc = geckoDriver
 var svc = chromeDriver
 
 func Run(ct *dig.Container) {
