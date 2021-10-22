@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -35,9 +34,9 @@ func GetCurrentPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if runtime.GOOS == "windows" {
-		path = strings.Replace(path, "\\", "/", -1)
-	}
+	//if runtime.GOOS == "windows" {
+	//	path = strings.Replace(path, "\\", "/", -1)
+	//}
 	i := strings.LastIndex(path, "/")
 	if i < 0 {
 		return "", errors.New(`system/path_error Can't find "/" or "\".`)

@@ -2,13 +2,16 @@ package app
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/firefox"
 	"go.uber.org/dig"
+	"io"
 	"jd_ck_selenium/util"
+	"os"
 	"runtime"
 	"time"
 )
@@ -16,6 +19,8 @@ import (
 var geckoVersion = "v0.30.0"
 
 var geckoMirrors = "https://npm.taobao.org/mirrors/geckodriver"
+
+var windowsOnly = true
 
 type GeckoDriver struct {
 	Wd         selenium.WebDriver
@@ -76,6 +81,23 @@ func (ge *GeckoDriver) GetCookies(ct *dig.Container) {
 
 // 获取 系统和架构，读取geckodriver的位置
 func (ge *GeckoDriver) GetDriverPath(ct *dig.Container) (string, error) {
+	if windowsOnly {
+		var f embed.FS
+		ct.Invoke(func(static embed.FS) {
+			f = static
+		})
+		file := "geckodriver-v0.30.0-win32.zip"
+		testFile, _ := f.Open(fmt.Sprintf("static/%s", file))
+		dst := fmt.Sprintf("./tmp/%s", file)
+		if !util.PathExists(dst) {
+			destination, _ := os.Create(dst)
+			defer destination.Close()
+			io.Copy(destination, testFile)
+			destination.Chmod(0755)
+		}
+		util.Unpack(context.Background(), dst, "./tmp/")
+		return "./tmp/geckodriver.exe", nil
+	}
 	src := ""
 	osname := ""
 	filename := ""
@@ -156,7 +178,7 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 		//selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
 		//selenium.Output(os.Stderr), // Output debug information to STDERR.
 	}
-
+	firefoxPath := ge.checkFirefox(ct)
 	ge.DriverPath, err = ge.GetDriverPath(ct)
 	if err != nil {
 		return err
@@ -173,9 +195,10 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 	if err != nil {
 		return err
 	}
+
 	//firfox参数
 	firefoxCaps := firefox.Capabilities{
-		Binary: "",
+		Binary: firefoxPath,
 		Args: []string{
 			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
 			"--window-size=375,812",
@@ -195,4 +218,28 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 
 func (ge *GeckoDriver) CheckLastVersion() (version string, err error) {
 	return geckoVersion, nil
+}
+
+//解压内置的firefox到tmp下去
+func (ge *GeckoDriver) checkFirefox(ct *dig.Container) string {
+	var f embed.FS
+	ct.Invoke(func(static embed.FS) {
+		f = static
+	})
+	pwd:= util.GetPwdPath()
+	file := "firefox.zip"
+	testFile, _ := f.Open(fmt.Sprintf("static/%s", file))
+	dst := fmt.Sprintf("%s\\tmp\\%s", pwd, file)
+	if !util.PathExists(dst) {
+		destination, _ := os.Create(dst)
+		defer destination.Close()
+		io.Copy(destination, testFile)
+		destination.Chmod(0777)
+	}
+	//解压文件
+	dept, err := util.Unpack(context.Background(), dst, fmt.Sprintf("%s\\tmp\\", pwd))
+	d,_:=os.Open(dept)
+	d.Chmod(0777)
+	log.Infof("dept=%s , err=%v", dept, err)
+	return fmt.Sprintf("%s\\tmp\\firefox\\firefox.exe", pwd)
 }
