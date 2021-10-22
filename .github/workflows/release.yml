@@ -10,6 +10,10 @@ on:
         description: 'release版本号'
         required: true
         default: 'v1.0.0'
+      body:
+        description: 'release的body内容'
+        required: true
+        default: '日常发布'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -36,9 +40,10 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -ldflags=" -s" -o dist/jd_ck_selenium_macos_amd64
           GOOS=darwin GOARCH=arm64  go build -ldflags=" -s" -o dist/jd_ck_selenium_macos_arm64
           GOOS=linux GOARCH=amd64  go build -ldflags=" -s" -o dist/jd_ck_selenium_linux_amd64
-          GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_amd64.exe
-          GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_i386.exe
-
+          GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_amd64_noconsole.exe
+          GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s" -o dist/jd_ck_selenium_windows_i386_noconsole.exe
+          GOOS=windows GOARCH=amd64  go build -ldflags="-s" -o dist/jd_ck_selenium_windows_amd64.exe
+          GOOS=windows GOARCH=386  go build -ldflags="-s" -o dist/jd_ck_selenium_windows_i386.exe
 #      - name: Upload assets
 #        uses: actions/upload-artifact@v2
 #        with:
@@ -68,6 +73,9 @@ jobs:
             dist/jd_ck_selenium_linux_amd64
             dist/jd_ck_selenium_windows_amd64.exe
             dist/jd_ck_selenium_windows_i386.exe
+            dist/jd_ck_selenium_windows_amd64_noconsole.exe
+            dist/jd_ck_selenium_windows_i386_noconsole.exe
           name: Release ${{ github.event.inputs.version }}
+          body: Release ${{ github.event.inputs.body }}
           tag_name: ${{ github.event.inputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}

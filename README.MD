@@ -60,6 +60,8 @@ $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl=http://abc.com:8888/ups
 GOOS=darwin GOARCH=amd64 go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_macos_amd64
 GOOS=darwin GOARCH=arm64  go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_macos_arm64
 GOOS=linux GOARCH=amd64  go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_linux_amd64
-GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_amd64.exe
-GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_i386.exe
+GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_amd64_noconsole.exe
+GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_i386_noconsole.exe
+GOOS=windows GOARCH=amd64  go build -ldflags="-s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_amd64.exe
+GOOS=windows GOARCH=386  go build -ldflags="-s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_i386.exe
 ```
