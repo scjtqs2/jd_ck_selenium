@@ -15,7 +15,7 @@ on:
         required: true
         default: '日常发布'
 jobs:
-  goreleaser:
+  newRelease:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -78,4 +78,4 @@ jobs:
           name: Release ${{ github.event.inputs.version }}
           body: Release ${{ github.event.inputs.body }}
           tag_name: ${{ github.event.inputs.version }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+#          token: ${{ secrets.GITHUB_TOKEN }}
