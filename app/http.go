@@ -121,7 +121,7 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 	})
 	postUrl := webhook.Url
 	if postUrl != "" {
-		var res MSG
+		var res string
 		code := 0
 		var flow *dataflow.DataFlow
 		switch webhook.Method {
@@ -142,7 +142,8 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 			break
 		}
 		err := flow.
-			BindJSON(&res).
+			Debug(false).
+			BindBody(&res).
 			SetHeader(gout.H{
 				"Connection":   "Keep-Alive",
 				"Content-Type": "application/x-www-form-urlencoded; Charset=UTF-8",
@@ -155,9 +156,9 @@ func postWebHookCk(ct *dig.Container, cookie string) {
 			WaitTime(time.Millisecond * 500).MaxWaitTime(time.Second * 5).
 			Do()
 		if err != nil || code != 200 {
-			log.Errorf("upsave notify post  usercookie to %s faild", postUrl)
+			log.Errorf("upsave notify post  usercookie to %s, res=%s faild err=%v, http_code=%d", postUrl, res, err, code)
 		} else {
-			log.Infof("upsave to url %s post usercookie=%s success", postUrl, cookie)
+			log.Infof("upsave to url %s post usercookie=%s success res=%s", postUrl, cookie, res)
 		}
 		return
 	}

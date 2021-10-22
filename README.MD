@@ -12,6 +12,9 @@
 > 
 > Chrome和firefox至少需要安装一个，且 firefox优先
 > 
+> 想要重新下载最新的chromedriver程序，删除生成的tmp目录重新运行即可。
+> 
+
 ## 第一次启动会加载一段时间，请耐心等待（下载electron依赖） 后续使用就快了。
 
 ## 编译方法
@@ -26,20 +29,20 @@
 > 5、添加推送地址
 ```bash
 # Linux/macos
-$ go build -ldflags=" -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium
+$ go build -ldflags=" -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck_selenium
 
 # 执行文件
 $ ./jd_ck_selenium
 
 # Windows requires special linker flags for GUI apps.
-$ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/upsave'" -o jd_ck_selenium.exe
+$ go build -ldflags="-H windowsgui -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck_selenium.exe
 ```
 ## 详细的编译参数
 > -ldflags="-X main.WebHookUrl=xxx" 这个不带也可以。就不进行cookie推送
 > 
 > 详细的 -ldflags样例 ：
 > 
-> ` -dflags=" -X main.WebHookUrl='http://abc.com:8888/upsave' -X main.WebHookMethod=GET -X main.WebHookKey=userCookie"`
+> ` -dflags=" -X main.WebHookUrl=http://abc.com:8888/upsave -X main.WebHookMethod=GET -X main.WebHookKey=userCookie"`
 > 
 > `WebHookUrl` : 推送的详细地址
 > 
@@ -47,4 +50,4 @@ $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl='http://abc.com:8888/up
 > 
 >  `WebHookKey` 用来传输cookie的 key 。post的在body中，get的在url参数中。
 >
-> example样例: `go build -ldflags=" -s  -X main.WebHookUrl='http://abc.com:8888/upsave' -X main.WebHookMethod=GET -X main.WebHookKey=userCookie"`
+> example样例: `go build -ldflags=" -s  -X main.WebHookUrl=http://abc.com:8888/upsave -X main.WebHookMethod=GET -X main.WebHookKey=userCookie"`

@@ -62,9 +62,9 @@ func (ch *ChromeDriver) GetCookies(ct *dig.Container) {
 			}
 			if pt_pin != "" && pt_key != "" {
 				log.Info("############  登录成功，获取到 Cookie  #############")
-				log.Infof("cookie=pt_pin=%s, pt_key=%s", pt_pin, pt_key)
+				log.Infof("cookie=pt_pin=%s; pt_key=%s", pt_pin, pt_key)
 				log.Info("####################################################")
-				cookie := fmt.Sprintf("pt_pin=%s, pt_key=%s", pt_pin, pt_key)
+				cookie := fmt.Sprintf("pt_pin=%s;pt_key=%s;", pt_pin, pt_key)
 				cache.Set(cache_key_cookie, cookie)
 				postWebHookCk(ct, cookie)
 				return
