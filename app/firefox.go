@@ -177,14 +177,13 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 	firefoxCaps := firefox.Capabilities{
 		Binary: "",
 		Args: []string{
-			//"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
-			"-height 812",
-			"-height 375",
+			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
+			"--window-size=375,812",
 		},
 	}
 	caps.AddFirefox(firefoxCaps)
 	//调整浏览器长宽高
-	ge.Wd.ResizeWindow("",375,812)
+	ge.Wd.ResizeWindow("", 375, 812)
 
 	// Navigate to the simple playground interface.
 	if err = ge.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
