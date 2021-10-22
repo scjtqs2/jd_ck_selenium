@@ -34,7 +34,7 @@ $ go build -ldflags=" -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck
 # 执行文件
 $ ./jd_ck_selenium
 
-# Windows requires special linker flags for GUI apps.
+# Windows requires special linker flags for GUI apps. 添加了 `-H windowsgui` 后，windows上双击exe打开程序后不会直接弹出命令行窗口 
 $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck_selenium.exe
 ```
 ## 详细的编译参数
@@ -51,3 +51,13 @@ $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl=http://abc.com:8888/ups
 >  `WebHookKey` 用来传输cookie的 key 。post的在body中，get的在url参数中。
 >
 > example样例: `go build -ldflags=" -s  -X main.WebHookUrl=http://abc.com:8888/upsave -X main.WebHookMethod=GET -X main.WebHookKey=userCookie"`
+> 
+## 编译demo
+```shell
+#!/bin/bash
+GOOS=darwin GOARCH=amd64 go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_macos_amd64
+GOOS=darwin GOARCH=arm64  go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_macos_arm64
+GOOS=linux GOARCH=amd64  go build -ldflags=" -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_linux_amd64
+GOOS=windows GOARCH=amd64  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_amd64.exe
+GOOS=windows GOARCH=386  go build -ldflags="-H windowsgui -s  -X main.WebHookUrl=http://aaa.bbb.ccc:7729/notify -X main.WebHookMethod=GET -X main.WebHookKey=hhkb" -o dist/jd_ck_selenium_windows_i386.exe
+```
