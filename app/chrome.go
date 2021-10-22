@@ -7,6 +7,7 @@ import (
 	"github.com/guonaihong/gout"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
+	"github.com/tebeka/selenium/chrome"
 	"go.uber.org/dig"
 	"jd_ck_selenium/util"
 	"runtime"
@@ -149,10 +150,31 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 
 	// Connect to the WebDriver instance running locally.
 	caps := selenium.Capabilities{"browserName": "chrome"}
+	//chrome参数
+	chromeCaps := chrome.Capabilities{
+		Path: "",
+		MobileEmulation: &chrome.MobileEmulation{
+			//DeviceName: "iPhone X",
+			DeviceMetrics: &chrome.DeviceMetrics{
+				Width:  375,
+				Height: 812,
+			},
+			UserAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
+		},
+		Args: []string{
+			//"--headless", // 设置Chrome无头模式，在linux下运行，需要设置这个参数，否则会报错
+			//"--no-sandbox",
+			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
+			"--window-size=375,812",
+		},
+	}
+	caps.AddChrome(chromeCaps)
 	ch.Wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", p))
 	if err != nil {
 		return err
 	}
+	//调整浏览器长宽高
+	//ch.Wd.ResizeWindow("", 375, 812)
 
 	// Navigate to the simple playground interface.
 	if err = ch.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {

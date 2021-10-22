@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
+	"github.com/tebeka/selenium/firefox"
 	"go.uber.org/dig"
 	"jd_ck_selenium/util"
 	"runtime"
@@ -172,6 +173,18 @@ func (ge *GeckoDriver) SeRun(ct *dig.Container) (err error) {
 	if err != nil {
 		return err
 	}
+	//firfox参数
+	firefoxCaps := firefox.Capabilities{
+		Binary: "",
+		Args: []string{
+			//"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
+			"-height 812",
+			"-height 375",
+		},
+	}
+	caps.AddFirefox(firefoxCaps)
+	//调整浏览器长宽高
+	ge.Wd.ResizeWindow("",375,812)
 
 	// Navigate to the simple playground interface.
 	if err = ge.Wd.Get("https://home.m.jd.com/myJd/newhome.action"); err != nil {
