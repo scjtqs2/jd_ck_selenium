@@ -34,7 +34,9 @@ $ go build -ldflags=" -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck
 # 执行文件
 $ ./jd_ck_selenium
 
-# Windows requires special linker flags for GUI apps. 添加了 `-H windowsgui` 后，windows上双击exe打开程序后不会直接弹出命令行窗口 
+# Windows requires special linker flags for GUI apps. 
+# 添加了 `-H windowsgui` 后，windows上双击exe打开程序后不会直接弹出命令行窗口 
+# 如果想要在windows下显示console页面，去掉 -H windowsgui 就行了。
 $ go build -ldflags="-H windowsgui -s -X main.WebHookUrl=http://abc.com:8888/upsave" -o jd_ck_selenium.exe
 ```
 ## 详细的编译参数
