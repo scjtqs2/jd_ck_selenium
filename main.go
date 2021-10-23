@@ -16,7 +16,7 @@ var WebHookMethod = "POST"
 
 var WebHookKey = "hhkb"
 
-var SeType = "firefox"
+var SeType = "chrome"
 
 func main() {
 	webhook := app.WebHook{

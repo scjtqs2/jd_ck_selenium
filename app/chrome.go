@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"github.com/guonaihong/gout"
@@ -10,6 +11,7 @@ import (
 	"github.com/tebeka/selenium/chrome"
 	"go.uber.org/dig"
 	"jd_ck_selenium/util"
+	"os"
 	"runtime"
 	"time"
 )
@@ -138,6 +140,8 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 		//selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
 		//selenium.Output(os.Stderr), // Output debug information to STDERR.
 	}
+	//chromePath := ""
+	chromePath := ch.checkChrome(ct)
 	ch.DriverPath, err = ch.GetDriverPath(ct)
 	if err != nil {
 		return err
@@ -152,7 +156,7 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	//chrome参数
 	chromeCaps := chrome.Capabilities{
-		Path: "",
+		Path: chromePath,
 		MobileEmulation: &chrome.MobileEmulation{
 			//DeviceName: "iPhone X",
 			DeviceMetrics: &chrome.DeviceMetrics{
@@ -166,6 +170,11 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 			//"--no-sandbox",
 			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
 			"--window-size=375,812",
+			"–-incognito",
+			"--disable-infobars",
+			"--start-maximized",
+			"--no-sandbox",
+			"--disable-gpu",
 		},
 	}
 	caps.AddChrome(chromeCaps)
@@ -185,6 +194,9 @@ func (ch *ChromeDriver) SeRun(ct *dig.Container) (err error) {
 }
 
 func (ch *ChromeDriver) CheckLastVersion() (version string, err error) {
+	//if windowsOnly {
+	//	return "2.45",nil
+	//}
 	url := "https://npm.taobao.org/mirrors/chromedriver/LATEST_RELEASE"
 	code := 0
 	err = gout.GET(url).BindBody(&version).Code(&code).
@@ -195,6 +207,47 @@ func (ch *ChromeDriver) CheckLastVersion() (version string, err error) {
 	if err != nil || code != 200 {
 		return chromeVersion, err
 	}
+	version = "94.0.4606.61"
 	log.Infof("latest chrome version =%s ", version)
 	return version, err
+}
+
+//解压内置的firefox到tmp下去
+func (ch *ChromeDriver) checkChrome(ct *dig.Container) string {
+
+	var f embed.FS
+	ct.Invoke(func(static embed.FS) {
+		f = static
+	})
+	mirror := "https://ghproxy.com/https://github.com/scjtqs2/jd_ck_selenium/releases/download/v1.0.2/Chrome.zip"
+
+	pwd := util.GetPwdPath()
+	file := "Chrome.zip"
+	dst := fmt.Sprintf("%s\\tmp\\%s", pwd, file)
+	if !util.PathExists(dst) {
+		log.Info("下载chrome中，请稍等")
+		util.Download(context.Background(), mirror, dst)
+		log.Infof("下载chrome完成，准备解压")
+	}
+
+	//testFile, _ := f.Open(fmt.Sprintf("static/%s", file))
+
+	//if !util.PathExists(dst) {
+	//	// Makes sure destPath exists
+	//	os.MkdirAll(fmt.Sprintf("%s\\tmp", pwd), 0740)
+	//	destination, _ := os.Create(dst)
+	//	defer destination.Close()
+	//	io.Copy(destination, testFile)
+	//	destination.Chmod(0777)
+	//}
+	log.Info("解压chrome中，请稍等")
+	//解压文件
+	dept, err := util.Unpack(context.Background(), dst, fmt.Sprintf("%s\\tmp\\", pwd))
+	d, _ := os.Open(dept)
+	d.Chmod(0777)
+	if err != nil {
+		log.Errorf("dept=%s , err=%v", dept, err)
+	}
+	log.Info("解压chrome完毕")
+	return fmt.Sprintf("%s\\tmp\\Chrome\\App\\chrome.exe", pwd)
 }
