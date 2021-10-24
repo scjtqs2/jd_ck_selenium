@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"crypto/rand"
+	"math"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -89,3 +90,7 @@ func S2B(s string) (b []byte) {
 	return
 }
 
+
+func Decimal(value float64) float64 {
+	return math.Trunc(value*1e2+0.5) * 1e-2
+}

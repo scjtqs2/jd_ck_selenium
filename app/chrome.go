@@ -13,6 +13,8 @@ import (
 	"jd_ck_selenium/util"
 	"os"
 	"runtime"
+	"strconv"
+	"sync"
 	"time"
 )
 
@@ -128,7 +130,7 @@ func (ch *ChromeDriver) GetDriverPath(ct *dig.Container) (string, error) {
 		return "", errors.New("not support arch")
 	}
 	dst := "./tmp"
-	util.Download(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
+	util.DownloadSingle(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
 	util.Unpack(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
 	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
@@ -226,7 +228,29 @@ func (ch *ChromeDriver) checkChrome(ct *dig.Container) string {
 	dst := fmt.Sprintf("%s\\tmp\\%s", pwd, file)
 	if !util.PathExists(dst) {
 		log.Info("下载chrome中，请稍等")
-		util.Download(context.Background(), mirror, dst)
+		//util.DownloadSingle(context.Background(), mirror, dst)
+		//util.Download(mirror, dst, func(schedule float64) {
+		//	log.Infof("chrome下载百分比：%.2f%s", schedule,"%")
+		//})
+		wd := &sync.WaitGroup{}
+		util.DownloadFileBackend(mirror, dst, "", wd, func(length, downLen int64) {
+			//转float64
+			size := float64(length)
+			//下载大小转string
+			Dstring := strconv.FormatInt(downLen, 10)
+			//再转float64
+			Dfloat, err := strconv.ParseFloat(Dstring, 64)
+
+			if err != nil {
+				log.Fatalln(err)
+			}
+			percent := util.Decimal(Dfloat / size * 100)
+			//percentStr := strconv.FormatFloat(percent, 'f', -1, 64)
+			percentStr := fmt.Sprintf("%.2f", percent)
+			fmt.Printf("chrome下载中，已完成%s%s \n", percentStr, "%")
+			//str="文件【"+filename+"】已下载了"+Dstring+"内容，总共有"+file_size+" 已完成:"+percentStr+"%"
+		})
+		wd.Wait()
 		log.Infof("下载chrome完成，准备解压")
 	}
 
