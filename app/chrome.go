@@ -229,7 +229,7 @@ func (ch *ChromeDriver) checkChrome(ct *dig.Container) string {
 	if !util.PathExists(dst) {
 		log.Info("下载chrome中，请稍等")
 		//util.DownloadSingle(context.Background(), mirror, dst)
-		//util.Download(mirror, dst, func(schedule float64) {
+		//util.DownloadMulit(mirror, dst, func(schedule float64) {
 		//	log.Infof("chrome下载百分比：%.2f%s", schedule,"%")
 		//})
 		wd := &sync.WaitGroup{}

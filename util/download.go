@@ -93,8 +93,8 @@ Loop:
 	return nil
 }
 
-//DownloadSingle 多线程下载
-func Download(url, cachePath string, scheduleCallback func(length, downLen int64)) (string, error) {
+//DownloadMulit 多线程下载
+func DownloadMulit(url, cachePath string, scheduleCallback func(length, downLen int64)) (string, error) {
 	// Make sure the dst directory  exists
 	os.MkdirAll(filepath.Dir(cachePath), 0775)
 
@@ -263,7 +263,12 @@ func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.
 	if err != nil {
 		return err
 	}
-	defer os.Rename(tmpFilePath, localPath)
+	defer func() {
+		err := os.Rename(tmpFilePath, localPath)
+		if err != nil {
+			log.Errorf("rename faild error = %v", err)
+		}
+	}()
 	defer file.Close()
 	if resp.Body == nil {
 		return errors.New("body is null")
