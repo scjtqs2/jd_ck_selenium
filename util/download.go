@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-var threadGroup = sync.WaitGroup{}
-
 var packageSize int64
 
 func init() {
@@ -169,6 +167,7 @@ func dispSliceDownload(client http.Client, file *os.File, ContentLength int64, u
 	}
 	//下载总进度
 	var schedule int64
+	var threadGroup = &sync.WaitGroup{}
 	//分配下载线程
 	for count := 0; count < int(i); count++ {
 		//计算每个线程下载的区间,起始位置
@@ -186,7 +185,7 @@ func dispSliceDownload(client http.Client, file *os.File, ContentLength int64, u
 				"bytes="+strconv.FormatInt(start, 10)+"-"+strconv.FormatInt(end, 10))
 			//
 			threadGroup.Add(1)
-			go sliceDownload(client, req, file, &schedule, &ContentLength, scheduleCallback, start)
+			go sliceDownload(threadGroup, client, req, file, &schedule, &ContentLength, scheduleCallback, start)
 		} else {
 			log.Errorf("dispSliceDownload request faild err =%v", e)
 		}
@@ -197,7 +196,7 @@ func dispSliceDownload(client http.Client, file *os.File, ContentLength int64, u
 	return 0
 }
 
-func sliceDownload(client http.Client, request *http.Request, file *os.File, schedule *int64, ContentLength *int64, scheduleCallback func(length, downLen int64),
+func sliceDownload(threadGroup *sync.WaitGroup, client http.Client, request *http.Request, file *os.File, schedule *int64, ContentLength *int64, scheduleCallback func(length, downLen int64),
 	start int64) {
 	defer threadGroup.Done()
 	var j = 0
