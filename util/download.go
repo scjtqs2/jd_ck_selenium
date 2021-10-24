@@ -263,6 +263,7 @@ func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.
 	if err != nil {
 		return err
 	}
+	defer os.Rename(tmpFilePath, localPath)
 	defer file.Close()
 	if resp.Body == nil {
 		return errors.New("body is null")
@@ -302,12 +303,11 @@ func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.
 	if err != nil {
 		log.Errorf("下载出错 err=%v", err)
 	}
-	if err == nil {
-		err = os.Rename(tmpFilePath, localPath)
-		if err != nil {
-			log.Errorf("rename出错 err=%v", err)
-		}
-	}
+	//file.Close()
+	//err = os.Rename(tmpFilePath, localPath)
+	//if err != nil {
+	//	log.Errorf("rename出错 err=%v", err)
+	//}
 	return err
 }
 
