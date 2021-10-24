@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-var client = http.Client{Timeout: time.Second * 180}
-
 var threadGroup = sync.WaitGroup{}
 
 var packageSize int64
@@ -113,6 +111,9 @@ func DownloadMulit(url, cachePath string, scheduleCallback func(length, downLen 
 	} else {
 		localFileSize = info.Size()
 	}
+	//var client = http.Client{Timeout: time.Second * 180}
+	var client = http.Client{}
+
 	//HEAD 方法请求服务端是否支持多线程下载,并获取文件大小
 	if request, e := http.NewRequest("HEAD", url, nil); e == nil {
 		if response, i := client.Do(request); i == nil {
@@ -131,7 +132,7 @@ func DownloadMulit(url, cachePath string, scheduleCallback func(length, downLen 
 				}()
 				if strings.Compare(response.Header.Get("Accept-Ranges"), "bytes") == 0 {
 					//支持 走下载流程
-					if dispSliceDownload(file, ContentLength, url, scheduleCallback) == 0 {
+					if dispSliceDownload(client, file, ContentLength, url, scheduleCallback) == 0 {
 						return cachePath, nil
 					} else {
 						err := DownloadSingle(context.Background(), url, cachePath)
@@ -158,7 +159,7 @@ func DownloadMulit(url, cachePath string, scheduleCallback func(length, downLen 
 	return "", nil
 }
 
-func dispSliceDownload(file *os.File, ContentLength int64, url string, scheduleCallback func(length, downLen int64)) int {
+func dispSliceDownload(client http.Client, file *os.File, ContentLength int64, url string, scheduleCallback func(length, downLen int64)) int {
 	defer file.Close()
 	//文件总大小除以 每个线程下载的大小
 	i := ContentLength / packageSize
@@ -185,9 +186,9 @@ func dispSliceDownload(file *os.File, ContentLength int64, url string, scheduleC
 				"bytes="+strconv.FormatInt(start, 10)+"-"+strconv.FormatInt(end, 10))
 			//
 			threadGroup.Add(1)
-			go sliceDownload(req, file, &schedule, &ContentLength, scheduleCallback, start)
+			go sliceDownload(client, req, file, &schedule, &ContentLength, scheduleCallback, start)
 		} else {
-			panic(e)
+			log.Errorf("dispSliceDownload request faild err =%v", e)
 		}
 
 	}
@@ -196,36 +197,45 @@ func dispSliceDownload(file *os.File, ContentLength int64, url string, scheduleC
 	return 0
 }
 
-func sliceDownload(request *http.Request, file *os.File, schedule *int64, ContentLength *int64, scheduleCallback func(length, downLen int64),
+func sliceDownload(client http.Client, request *http.Request, file *os.File, schedule *int64, ContentLength *int64, scheduleCallback func(length, downLen int64),
 	start int64) {
 	defer threadGroup.Done()
-	if response, e := client.Do(request); e == nil && response.StatusCode == 206 {
-		defer response.Body.Close()
-		if bytes, i := ioutil.ReadAll(response.Body); i == nil {
-			i2 := len(bytes)
-			//从我们计算好的起点写入文件
-			file.WriteAt(bytes, start)
-			atomic.AddInt64(schedule, int64(i2))
-			val := atomic.LoadInt64(schedule)
-			//num := float64(val*1.0) / float64(*ContentLength) * 100
-			scheduleCallback(val, *ContentLength)
+	var j = 0
+	for {
+		if response, e := client.Do(request); e == nil && response.StatusCode == 206 {
+			defer response.Body.Close()
+			if bytes, i := ioutil.ReadAll(response.Body); i == nil {
+				i2 := len(bytes)
+				//从我们计算好的起点写入文件
+				file.WriteAt(bytes, start)
+				atomic.AddInt64(schedule, int64(i2))
+				val := atomic.LoadInt64(schedule)
+				//num := float64(val*1.0) / float64(*ContentLength) * 100
+				scheduleCallback(val, *ContentLength)
+				return
+			} else {
+				log.Errorf("http client faild ,err=%v,try=%d", e, j)
+			}
 		} else {
-			panic(e)
+			log.Errorf("error =%v,response =%+v,try = %d", e, response, j)
+			//panic(fmt.Sprintf("error =%v,response =%+v", e, response))
 		}
-	} else {
-		log.Errorf("error =%v,response =%+v", e, response)
-		panic(fmt.Sprintf("error =%v,response =%+v", e, response))
+		j++
+		if j > 3 {
+			log.Errorf("doanload")
+			return
+		}
 	}
 }
 
 //通过gorouting 后台下载
-func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.WaitGroup, fb func(length, downLen int64)) error {
+func DownloadFileBackend(url string, localPath string, cookies string, wg *sync.WaitGroup, fb func(length, downLen int64)) error {
 	var (
 		fsize   int64
 		buf     = make([]byte, 32*1024)
 		written int64
 	)
-	defer wd.Done()
+	defer wg.Done()
 	// Make sure the dst directory  exists
 	os.MkdirAll(filepath.Dir(localPath), 0775)
 
@@ -308,11 +318,6 @@ func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.
 	if err != nil {
 		log.Errorf("下载出错 err=%v", err)
 	}
-	//file.Close()
-	//err = os.Rename(tmpFilePath, localPath)
-	//if err != nil {
-	//	log.Errorf("rename出错 err=%v", err)
-	//}
 	return err
 }
 
