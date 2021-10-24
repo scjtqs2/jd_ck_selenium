@@ -233,7 +233,8 @@ func (ch *ChromeDriver) checkChrome(ct *dig.Container) string {
 		//	log.Infof("chrome下载百分比：%.2f%s", schedule,"%")
 		//})
 		wd := &sync.WaitGroup{}
-		util.DownloadFileBackend(mirror, dst, "", wd, func(length, downLen int64) {
+		wd.Add(1)
+		go util.DownloadFileBackend(mirror, dst, "", wd, func(length, downLen int64) {
 			//转float64
 			size := float64(length)
 			//下载大小转string

@@ -208,7 +208,7 @@ func sliceDownload(request *http.Request, file *os.File, schedule *int64, Conten
 			atomic.AddInt64(schedule, int64(i2))
 			val := atomic.LoadInt64(schedule)
 			//num := float64(val*1.0) / float64(*ContentLength) * 100
-			scheduleCallback(val,*ContentLength)
+			scheduleCallback(val, *ContentLength)
 		} else {
 			panic(e)
 		}
@@ -219,7 +219,7 @@ func sliceDownload(request *http.Request, file *os.File, schedule *int64, Conten
 }
 
 //通过gorouting 后台下载
-func DownloadFileBackend(url string, localPath string, cookies string,wd *sync.WaitGroup, fb func(length, downLen int64)) error {
+func DownloadFileBackend(url string, localPath string, cookies string, wd *sync.WaitGroup, fb func(length, downLen int64)) error {
 	var (
 		fsize   int64
 		buf     = make([]byte, 32*1024)
@@ -299,11 +299,14 @@ func DownloadFileBackend(url string, localPath string, cookies string,wd *sync.W
 		//没有错误了快使用 callback
 		fb(fsize, written)
 	}
-	log.Errorf("下载出错 err=%v", err)
+	if err != nil {
+		log.Errorf("下载出错 err=%v", err)
+	}
 	if err == nil {
-		file.Close()
 		err = os.Rename(tmpFilePath, localPath)
-		log.Errorf("rename出错 err=%v", err)
+		if err != nil {
+			log.Errorf("rename出错 err=%v", err)
+		}
 	}
 	return err
 }
