@@ -144,7 +144,7 @@ func (ge *GeckoDriver) GetDriverPath(ct *dig.Container) (string, error) {
 		return "", errors.New("not support arch")
 	}
 	dst := "./tmp"
-	util.Download(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
+	util.DownloadSingle(context.Background(), src, fmt.Sprintf("%s/%s", dst, filename))
 	util.Unpack(context.Background(), fmt.Sprintf("%s/%s", dst, filename), dst)
 	return fmt.Sprintf("%s/%s", dst, bfile), err
 }
