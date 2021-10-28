@@ -61,6 +61,8 @@ func guiStart(port int, ct *dig.Container) {
 			defer func() {
 				//打开异常，换种方法打开
 				if err := recover(); err != nil {
+					svc.GetWd().Quit()
+					svc.GetService().Stop()
 					if SeType == "firefox" {
 						SeType = "chrome"
 						svc = NewChromeService(ct)
@@ -73,6 +75,8 @@ func guiStart(port int, ct *dig.Container) {
 				}
 			}()
 			if err := svc.SeRun(ct); err != nil {
+				svc.GetWd().Quit()
+				svc.GetService().Stop()
 				log.Errorf("faild to open firefox err=%w",err)
 				if SeType == "firefox" {
 					SeType = "chrome"
