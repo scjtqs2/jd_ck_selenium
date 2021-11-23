@@ -17,6 +17,7 @@ func guiStart(port int, ct *dig.Container) {
 	var a, _ = astilectron.New(log.New(), astilectron.Options{
 		AppName:           "jd_cookie_Tools",
 		BaseDirectoryPath: "example",
+		DataDirectoryPath: "example",
 	})
 	defer a.Close()
 	defer func() {
